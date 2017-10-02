@@ -71,7 +71,7 @@ void Application::Display(void)
 	static float value = 0.0f;
 	value += 0.01f;
 
-	// translates cubes in the mesh to proper position and moves entire alien
+	// translates cubes in the mesh to proper position and moves entire alien mesh
 	for (int i = 0; i < alienMesh.size(); i++) 
 	{
 		matrix4 m4Translate = glm::translate(IDENTITY_M4, vector3(value + alienMesh[i]->x, alienMesh[i]->y, 3.0f));
