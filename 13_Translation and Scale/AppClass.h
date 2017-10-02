@@ -15,6 +15,7 @@ Date: 2017/05
 class Application
 {
 	MyMesh* m_pMesh = nullptr;
+	std::vector<MyMesh*> alienMesh;
 	String m_sProgrammer = "Alberto Bobadilla - labigm@rit.edu";
 
 private:
@@ -22,6 +23,7 @@ private:
 
 	uint m_uRenderCallCount = 0; //count of render calls per frame
 	uint m_uControllerCount = 0; //count of controllers connected
+	uint m_uMeshCount = 0;
 
 	vector3 m_v3Mouse = vector3(); //position of the mouse in the window
 	bool m_bFPC = false;// First Person Camera flag
