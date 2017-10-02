@@ -98,6 +98,11 @@ void Application::Release(void)
 {
 	SafeDelete(m_pMesh);
 
+	for (int i = 0; i < alienMesh.size(); i++) 
+	{
+		SafeDelete(alienMesh[i]);
+	}
+
 	//release GUI
 	ShutdownGUI();
 }
