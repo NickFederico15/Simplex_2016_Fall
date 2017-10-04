@@ -2,7 +2,7 @@
 void Application::InitVariables(void)
 {
 	////Change this to your name and email
-	//m_sProgrammer = "Alberto Bobadilla - labigm@rit.edu";
+	m_sProgrammer = "Nick Federico - njf1994@rit.edu";
 
 	////Alberto needed this at this position for software recording.
 	//m_pWindow->setPosition(sf::Vector2i(710, 0));
@@ -54,19 +54,30 @@ void Application::Display(void)
 	static uint uClock = m_pSystem->GenClock(); //generate a new clock for that timer
 	fTimer += m_pSystem->GetDeltaTime(uClock); //get the delta time for that timer
 
+	float timeToPoint = 2.0;
+	float percentDistance = fTimer / timeToPoint;
+
+	static int nextPoint = 1;
+	static int current = 0;
+
 	//calculate the current position
-	vector3 v3CurrentPos;
-	
+	vector3 v3StartingPos = m_stopsList[current];
+	vector3 v3TargetPos = m_stopsList[nextPoint];
+	vector3 v3CurrentPos = glm::lerp(v3StartingPos, v3TargetPos, percentDistance);
 
+	// check if target is achieved
+	if (fTimer >= timeToPoint) 
+	{
+		fTimer = 0;
 
+		current = nextPoint;
+		nextPoint++;
 
-
-	//your code goes here
-	v3CurrentPos = vector3(0.0f, 0.0f, 0.0f);
-	//-------------------
-	
-
-
+		if (nextPoint >= m_stopsList.size())
+		{
+			nextPoint = 0;
+		}
+	}
 	
 	matrix4 m4Model = glm::translate(v3CurrentPos);
 	m_pModel->SetModelMatrix(m4Model);
