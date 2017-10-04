@@ -275,9 +275,47 @@ void MyMesh::GenerateCone(float a_fRadius, float a_fHeight, int a_nSubdivisions,
 	Release();
 	Init();
 
-	// Replace this with your code
-	GenerateCube(a_fRadius * 2.0f, a_v3Color);
-	// -------------------------------
+	// stores the points
+	division = new vector3[a_nSubdivisions];
+
+	// tip and base points
+	vector3 tip(0, a_fHeight / 2.0, 0);
+	vector3 base(0, -a_fHeight / 2.0, 0);
+
+	// runs through the subdivisions calculates the points
+	for (int i = 0; i < a_nSubdivisions; i++)
+	{
+		division[i] = vector3(cos((360 / a_nSubdivisions * i) * PI / 180) * a_fRadius, -a_fHeight / 2.0, sin((360 / a_nSubdivisions * i) * PI / 180) * a_fRadius);
+	}
+
+	// loops subdivisions
+	for (int i = 0; i < a_nSubdivisions; i++)
+	{
+		// negative or positive
+		if (i < a_nSubdivisions - 1)
+		{
+			// draws top tris
+			AddTri(tip, division[i + 1], division[i]);
+
+			// draws bottom tris
+			AddTri(base, division[i], division[i + 1]);
+		}
+		else
+		{
+			// draws top tris
+			AddTri(division[0], division[i], tip);
+
+			// draws bottom tris
+			AddTri(division[i], division[0], base);
+		}
+	}
+
+	// deletes all pointers
+	if (division != nullptr) 
+	{
+		delete[] division;
+		division = nullptr;
+	}
 
 	// Adding information about color
 	CompleteMesh(a_v3Color);
@@ -299,9 +337,62 @@ void MyMesh::GenerateCylinder(float a_fRadius, float a_fHeight, int a_nSubdivisi
 	Release();
 	Init();
 
-	// Replace this with your code
-	GenerateCube(a_fRadius * 2.0f, a_v3Color);
-	// -------------------------------
+	// stores the points
+	topFace = new vector3[a_nSubdivisions];
+	bottomFace = new vector3[a_nSubdivisions];
+
+	// top and bottom middle points
+	vector3 topMiddle(0, a_fHeight / 2, 0);
+	vector3 bottomMiddle(0, -a_fHeight / 2, 0);
+
+	// runs through the subdivisions calculates the top points
+	for (int i = 0; i < a_nSubdivisions; i++)
+	{
+		topFace[i] = vector3(cos((360 / a_nSubdivisions * i) * PI / 180) * a_fRadius, a_fHeight / 2.0, sin((360 / a_nSubdivisions * i) * PI / 180) * a_fRadius);
+	}
+
+	// runs through the subdivisions calculates the bottom points
+	for (int i = 0; i < a_nSubdivisions; i++) 
+	{
+		bottomFace[i] = vector3(cos((360 / a_nSubdivisions * i) * PI / 180) * a_fRadius, -a_fHeight / 2.0, sin((360 / a_nSubdivisions * i) * PI / 180) * a_fRadius);
+	}
+
+	// loops subdivisions
+	for (int i = 0; i < a_nSubdivisions; i++) 
+	{
+		// negative or positive
+		if (i < a_nSubdivisions - 1) 
+		{
+			// draws top and bottom tris
+			AddTri(topFace[i + 1], topFace[i], topMiddle);
+			AddTri(bottomFace[i], bottomFace[i + 1], bottomMiddle);
+
+			// draws side quads
+			AddQuad(topFace[i], topFace[i + 1], bottomFace[i], bottomFace[i + 1]);
+		}
+		else
+		{
+			// draws top and bottom tris
+			AddTri(topFace[0], topFace[i], topMiddle);
+			AddTri(bottomFace[i], bottomFace[0], bottomMiddle);
+
+			// draws side quads
+			AddQuad(topFace[i], topFace[0], bottomFace[i], bottomFace[0]);
+		}
+	}
+
+	// deletes all pointers
+	if (bottomFace != nullptr) 
+	{
+		delete[] bottomFace;
+		bottomFace = nullptr;
+	}
+
+	if (topFace != nullptr) 
+	{
+		delete[] topFace;
+		topFace = nullptr;
+	}
 
 	// Adding information about color
 	CompleteMesh(a_v3Color);
@@ -329,9 +420,90 @@ void MyMesh::GenerateTube(float a_fOuterRadius, float a_fInnerRadius, float a_fH
 	Release();
 	Init();
 
-	// Replace this with your code
-	GenerateCube(a_fOuterRadius * 2.0f, a_v3Color);
-	// -------------------------------
+	// stores the points
+	bottomOutside = new vector3[a_nSubdivisions];
+	bottomInside = new vector3[a_nSubdivisions];
+	topOutside = new vector3[a_nSubdivisions];
+	topInside = new vector3[a_nSubdivisions];
+
+	// top and bottom middle points
+	vector3 bottomMiddle(0, -a_fHeight / 2, 0);
+	vector3 topMiddle(0, a_fHeight / 2, 0);
+
+	// runs through the subdivisions calculates the bottom points
+	for (int i = 0; i < a_nSubdivisions; i++) 
+	{
+		bottomOutside[i] = vector3(cos((360 / a_nSubdivisions * i) * PI / 180) * a_fOuterRadius, -a_fHeight / 2.0, sin((360 / a_nSubdivisions * i) * PI / 180) * a_fOuterRadius);
+		
+		bottomInside[i] = vector3(cos((360 / a_nSubdivisions * i) * PI / 180) * a_fInnerRadius, -a_fHeight / 2.0, sin((360 / a_nSubdivisions * i) * PI / 180) * a_fInnerRadius);
+	}
+
+	// runs through the subdivisions calculates the top points
+	for (int i = 0; i < a_nSubdivisions; i++)
+	{
+		topOutside[i] = vector3(cos((360 / a_nSubdivisions * i) * PI / 180) * a_fOuterRadius, a_fHeight / 2.0, sin((360 / a_nSubdivisions*i) * PI / 180) * a_fOuterRadius);
+		
+		topInside[i] = vector3(cos((360 / a_nSubdivisions * i) * PI / 180) * a_fInnerRadius, a_fHeight / 2.0, sin((360 / a_nSubdivisions*i) * PI / 180) * a_fInnerRadius);
+	}
+
+	// lops the subdivisions
+	for (int i = 0; i < a_nSubdivisions; i++)
+	{
+		// negative or positive
+		if (i < a_nSubdivisions - 1)
+		{
+			// draws top quads
+			AddQuad(topOutside[i + 1], topOutside[i], topInside[i + 1], topInside[i]);
+
+			// draws bottom quads
+			AddQuad(bottomOutside[i], bottomOutside[i + 1], bottomInside[i], bottomInside[i + 1]);
+
+			// draws inside quads
+			AddQuad(topInside[i + 1], topInside[i], bottomInside[i + 1], bottomInside[i]);
+
+			// draws outside quads
+			AddQuad(topOutside[i], topOutside[i + 1], bottomOutside[i], bottomOutside[i + 1]);
+		}
+		else 
+		{
+			// draws top quads
+			AddQuad(topOutside[0], topOutside[i], topInside[0], topInside[i]);
+
+			// draws bottom quads
+			AddQuad(bottomOutside[i], bottomOutside[0], bottomInside[i], bottomInside[0]);
+
+			// draws inside quads
+			AddQuad(topInside[0], topInside[i], bottomInside[0], bottomInside[i]);
+
+			// draws outside quads
+			AddQuad(topOutside[i], topOutside[0], bottomOutside[i], bottomOutside[0]);
+		}
+	}
+
+	// deletes all pointers
+	if (bottomOutside != nullptr) 
+	{
+		delete[] bottomOutside;
+		bottomOutside = nullptr;
+	}
+
+	if (topOutside != nullptr)
+	{
+		delete[] topOutside;
+		topOutside = nullptr;
+	}
+
+	if (bottomInside != nullptr)
+	{
+		delete[] bottomInside;
+		bottomInside = nullptr;
+	}
+
+	if (topInside != nullptr)
+	{
+		delete[] topInside;
+		topInside = nullptr;
+	}
 
 	// Adding information about color
 	CompleteMesh(a_v3Color);
@@ -380,15 +552,35 @@ void MyMesh::GenerateSphere(float a_fRadius, int a_nSubdivisions, vector3 a_v3Co
 		GenerateCube(a_fRadius * 2.0f, a_v3Color);
 		return;
 	}
-	if (a_nSubdivisions > 6)
-		a_nSubdivisions = 6;
+	if (a_nSubdivisions > 10)
+		a_nSubdivisions = 10;
 
 	Release();
 	Init();
 
-	// Replace this with your code
-	GenerateCube(a_fRadius * 2.0f, a_v3Color);
-	// -------------------------------
+	// loops subdivisions
+	for (int i = 0; i < a_nSubdivisions; i++) 
+	{
+		// find the first 2 angles of the current subdivision
+		float angle1 = PI / a_nSubdivisions * i;
+		float angle2 = PI / a_nSubdivisions * (i + 1);
+
+		for (int j = 0; j < a_nSubdivisions; j++) 
+		{
+			// finds the second 2 angles of the subdivision
+			float angle3 = (2 * PI) / a_nSubdivisions * j;
+			float angle4 = (2 * PI) / a_nSubdivisions * (j + 1);
+
+			// caculates all 4 points of the current quad
+			vector3 a(a_fRadius * cos(angle3) * sin(angle1), a_fRadius * sin(angle3) * sin(angle1), a_fRadius * cos(angle1));
+			vector3 b(a_fRadius * cos(angle3) * sin(angle2), a_fRadius * sin(angle3) * sin(angle2), a_fRadius * cos(angle2));
+			vector3 c(a_fRadius * cos(angle4) * sin(angle1), a_fRadius * sin(angle4) * sin(angle1), a_fRadius * cos(angle1));
+			vector3 d(a_fRadius * cos(angle4) * sin(angle2), a_fRadius * sin(angle4) * sin(angle2), a_fRadius * cos(angle2));
+			
+			// draws the current quad
+			AddQuad(a, b, c, d);
+		}
+	}
 
 	// Adding information about color
 	CompleteMesh(a_v3Color);
