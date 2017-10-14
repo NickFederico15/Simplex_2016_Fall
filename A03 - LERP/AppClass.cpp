@@ -2,7 +2,7 @@
 void Application::InitVariables(void)
 {
 	////Change this to your name and email
-	//m_sProgrammer = "Alberto Bobadilla - labigm@rit.edu";
+	m_sProgrammer = "Nick Federico - njf1994@rit.edu";
 
 	////Alberto needed this at this position for software recording.
 	//m_pWindow->setPosition(sf::Vector2i(710, 0));
@@ -39,6 +39,17 @@ void Application::InitVariables(void)
 	{
 		vector3 v3Color = WaveLengthToRGB(uColor); //calculate color based on wavelength
 		m_shapeList.push_back(m_pMeshMngr->GenerateTorus(fSize, fSize - 0.1f, 3, i, v3Color)); //generate a custom torus and add it to the meshmanager
+																							   
+		// pushes a vector of vector3 to points
+		points.push_back(std::vector<vector3>());
+		paths.push_back(1);
+
+		for (uint j = 0; j < i; j++)
+		{
+			// pushes a vector of the current shape's points
+			points[i - uSides].push_back(vector3(cosf((2 * PI / i) * j), sinf((2 * PI / i) * j), 0) * fSize - (0.1f / 2.f));
+		}
+		
 		fSize += 0.5f; //increment the size for the next orbit
 		uColor -= static_cast<uint>(decrements); //decrease the wavelength
 	}
@@ -59,22 +70,58 @@ void Application::Display(void)
 	// Clear the screen
 	ClearScreen();
 
+	static float fTimer = 0;	// stores a new timer
+	static uint uClock = m_pSystem->GenClock(); // generate a new clock for that timer
+	fTimer += m_pSystem->GetDeltaTime(uClock); // gets delta time for that timer
+
+	// checks if timer has reached its limit
+	if (fTimer > timeToStop)
+	{
+		// resets the timer
+		fTimer -= timeToStop;
+
+		// loops through all the indeces
+		for (uint i = 0; i < paths.size(); i++)
+		{
+			paths[i] += 1;
+
+			// returns to 0
+			if (paths[i] > points[i].size() - 1)
+			{
+				paths[i] = 0;
+			}
+		}
+	}
+
 	matrix4 m4View = m_pCameraMngr->GetViewMatrix(); //view Matrix
 	matrix4 m4Projection = m_pCameraMngr->GetProjectionMatrix(); //Projection Matrix
 	matrix4 m4Offset = IDENTITY_M4; //offset of the orbits, starts as the global coordinate system
+
 	/*
 		The following offset will orient the orbits as in the demo, start without it to make your life easier.
 	*/
-	//m4Offset = glm::rotate(IDENTITY_M4, 90.0f, AXIS_Z);
+
+	m4Offset = glm::rotate(IDENTITY_M4, 90.0f, AXIS_Z);
 
 	// draw a shapes
-	for (uint i = 0; i < m_uOrbits; ++i)
+	for (uint i = 0; i < m_uOrbits; i++)
 	{
 		m_pMeshMngr->AddMeshToRenderList(m_shapeList[i], glm::rotate(m4Offset, 90.0f, AXIS_X));
 
-		//calculate the current position
-		vector3 v3CurrentPos = ZERO_V3;
-		matrix4 m4Model = glm::translate(m4Offset, v3CurrentPos);
+		// creates a vector3 for current position
+		vector3 currentPos;
+
+		// calculates the point to LERP
+		if (paths[i] == 0)
+		{
+			currentPos = glm::lerp(points[i][points[i].size() - 1], points[i][paths[i]], fTimer / timeToStop);
+		}
+		else 
+		{
+			currentPos = glm::lerp(points[i][paths[i] - 1], points[i][paths[i]], fTimer / timeToStop);
+		}
+
+		matrix4 m4Model = glm::translate(m4Offset, currentPos);
 
 		//draw spheres
 		m_pMeshMngr->AddSphereToRenderList(m4Model * glm::scale(vector3(0.1)), C_WHITE);
