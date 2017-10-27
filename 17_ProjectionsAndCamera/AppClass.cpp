@@ -3,7 +3,7 @@ using namespace Simplex;
 void Application::InitVariables(void)
 {
 	////Change this to your name and email
-	//m_sProgrammer = "Alberto Bobadilla - labigm@rit.edu";
+	m_sProgrammer = "Nick Federico - njf1994@rit.edu";
 
 	////Alberto needed this at this position for software recording.
 	//m_pWindow->setPosition(sf::Vector2i(710, 0));
@@ -53,13 +53,21 @@ void Application::Display(void)
 	//draw a skybox
 	m_pMeshMngr->AddSkyboxToRenderList();
 
+
+	static float fPos = 0.0f;
+	m_pCamera->SetPosition(vector3(fPos, 0.0f, 10.0f));
+	m_pCamera->SetTarget(vector3(fPos, 0.0f, 9.0f));
+	fPos -= 0.01f;
+
+	// float fRatio = static_cast<float>(m_pSystem->GetWindowWidth()) / static_cast<float>(m_pSystem->GetWindowHeight());
+	float fRatio = m_pSystem->GetWindowRatio();
+
 	vector3 v3LookingAt = m_v3CameraPosition;
 	v3LookingAt.z -= 1.0f;
-	float fRatio = static_cast<float>(m_pSystem->GetWindowWidth()) / static_cast<float>(m_pSystem->GetWindowHeight());
 
 	// matrix4 m4Projection = glm::perspective(45.0f, fRatio, 0.01f, 1000.0f);
-	matrix4 m4Projection = glm::ortho(-10.0f, 10.0f, -20.0f, 20.0f, 0.01f, 1000.0f);
 
+	matrix4 m4Projection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 0.1f, 1000.0f);
 	matrix4 m4View = glm::lookAt(vector3(0, 0, 30) + m_v3CameraPosition, vector3(0, 0, 0) + v3LookingAt, vector3(0, 1, 0)); //m_pCameraMngr->GetViewMatrix();
 	matrix4 m4Model = ToMatrix4(m_qArcBall);
 

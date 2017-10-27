@@ -3,7 +3,7 @@ using namespace Simplex;
 void Application::InitVariables(void)
 {
 	////Change this to your name and email
-	//m_sProgrammer = "Alberto Bobadilla - labigm@rit.edu";
+	m_sProgrammer = "Nick Federico - njf1994@rit.edu";
 
 	////Alberto needed this at this position for software recording.
 	//m_pWindow->setPosition(sf::Vector2i(710, 0));
@@ -57,21 +57,32 @@ void Application::Display(void)
 		break;
 	case 2:
 		m_pCamera->ResetCamera();
+		m_pCamera->SetPerspective(false);
+		m_pCamera->CalculateProjectionMatrix();
+		m_pCamera->CalculateViewMatrix();
 		break;
 	case 3:
 		m_pCamera->ResetCamera();
+		m_pCamera->SetPosition(vector3(40.0f, 0.0f, 0.0f));
+		m_pCamera->SetUp(vector3(0.0f, 0.0f, -1.0f));
 		break;
 	case 4:
 		m_pCamera->ResetCamera();
+		m_pCamera->SetPosition(vector3(0.0f, 0.0f, -15.0f));
 		break;
 	case 5:
 		m_pCamera->ResetCamera();
+		m_pCamera->SetPosition(vector3(0.0f, 0.0f, -15.0f));
+		m_pCamera->SetNearFar(vector2(5.0f, 1000.0f));
 		break;
 	case 6:
 		m_pCamera->ResetCamera();
+		m_pCamera->SetPosition(vector3(0.0f, 0.0f, -15.0f));
+		m_pCamera->SetNearFar(vector2(0.1f, 10.0f));
 		break;
 	case 7:
 		m_pCamera->ResetCamera();
+		m_pCamera->SetUp(vector3(0.0f, -1.0f, 0.0f));
 		break;
 	}
 
@@ -80,7 +91,7 @@ void Application::Display(void)
 
 	//draw the primitive
 	m_pMesh1->Render(m_pCamera, glm::rotate(IDENTITY_M4, 90.0f, AXIS_X));
-	m_pMesh2->Render(m_pCamera, glm::translate(IDENTITY_M4, vector3(0.0f,0.0f,-5.0f)) * glm::rotate(IDENTITY_M4, 90.0f, AXIS_X));
+	m_pMesh2->Render(m_pCamera, glm::translate(IDENTITY_M4, vector3(0.0f, 0.0f, -5.0f)) * glm::rotate(IDENTITY_M4, 90.0f, AXIS_X));
 	m_pMesh3->Render(m_pCamera, glm::translate(vector3(0.0f, 0.0f, -10.0f)));
 
 	//render list call
@@ -88,10 +99,10 @@ void Application::Display(void)
 
 	//clear the render list
 	m_pMeshMngr->ClearRenderList();
-	
+
 	//draw gui
 	DrawGUI();
-	
+
 	//end the current frame (internally swaps the front and back buffers)
 	m_pWindow->display();
 }
