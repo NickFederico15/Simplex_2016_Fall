@@ -22,7 +22,6 @@ void Application::ProcessMousePressed(sf::Event a_event)
 		break;
 	case sf::Mouse::Button::Middle:
 		gui.m_bMousePressed[1] = true;
-		m_bArcBall = true;
 		break;
 	case sf::Mouse::Button::Right:
 		gui.m_bMousePressed[2] = true;
@@ -43,7 +42,6 @@ void Application::ProcessMouseReleased(sf::Event a_event)
 		break;
 	case sf::Mouse::Button::Middle:
 		gui.m_bMousePressed[1] = false;
-		m_bArcBall = false;
 		break;
 	case sf::Mouse::Button::Right:
 		gui.m_bMousePressed[2] = false;
@@ -333,7 +331,7 @@ void Application::CameraRotation(float a_fSpeed)
 	UINT	MouseX, MouseY;		// Coordinates for the mouse
 	UINT	CenterX, CenterY;	// Coordinates for the center of the screen.
 
-								//Initialize the position of the pointer to the middle of the screen
+	//Initialize the position of the pointer to the middle of the screen
 	CenterX = m_pSystem->GetWindowX() + m_pSystem->GetWindowWidth() / 2;
 	CenterY = m_pSystem->GetWindowY() + m_pSystem->GetWindowHeight() / 2;
 
@@ -343,32 +341,55 @@ void Application::CameraRotation(float a_fSpeed)
 	MouseX = pt.x;
 	MouseY = pt.y;
 
-	//Calculate the difference in view with the angle
-	float fAngleX = 0.0f;
-	float fAngleY = 0.0f;
+	// Calculate the view
 	float fDeltaMouse = 0.0f;
+	float angleX = 0.0f;
+	float angleY = 0.0f;
+
 	if (MouseX < CenterX)
 	{
 		fDeltaMouse = static_cast<float>(CenterX - MouseX);
-		fAngleY += fDeltaMouse * a_fSpeed;
+		angleX += fDeltaMouse * a_fSpeed;
 	}
 	else if (MouseX > CenterX)
 	{
 		fDeltaMouse = static_cast<float>(MouseX - CenterX);
-		fAngleY -= fDeltaMouse * a_fSpeed;
+		angleX -= fDeltaMouse * a_fSpeed;
 	}
 
 	if (MouseY < CenterY)
 	{
 		fDeltaMouse = static_cast<float>(CenterY - MouseY);
-		fAngleX -= fDeltaMouse * a_fSpeed;
+		angleY -= fDeltaMouse * a_fSpeed;
 	}
 	else if (MouseY > CenterY)
 	{
 		fDeltaMouse = static_cast<float>(MouseY - CenterY);
-		fAngleX += fDeltaMouse * a_fSpeed;
+		angleY += fDeltaMouse * a_fSpeed;
 	}
-	//Change the Yaw and the Pitch of the camera
+
+	// get the axes
+	vector3 up = m_pCamera->GetUp();
+	vector3 forward = m_pCamera->GetTarget() - m_pCamera->GetPosition();
+	vector3 right = glm::normalize(glm::cross(up, forward));
+
+	// add y rotation to total y rotation
+	fTotalAngleY += angleY;
+
+	// keep total between -90 and 90
+	if (fTotalAngleY < -90.0f) {
+		fTotalAngleY = -90.0f;
+	}
+	else if (fTotalAngleY > 90.0f) {
+		fTotalAngleY = 90.0f;
+	}
+	else {
+		m_qFPC = glm::angleAxis(angleY, right) * m_qFPC;
+	}
+
+	// updates the x axis
+	m_qFPC = glm::angleAxis(angleX, up) * m_qFPC;
+
 	SetCursorPos(CenterX, CenterY);//Position the mouse in the center
 }
 //Keyboard
@@ -386,6 +407,37 @@ void Application::ProcessKeyboard(void)
 	if (fMultiplier)
 		fSpeed *= 5.0f;
 #pragma endregion
+
+	// gets current camera data
+	vector3 position = m_pCamera->GetPosition();
+	vector3 up = m_pCamera->GetUp();
+
+	// calculates x, y, and z of forward vector from quaternion
+	float x = 2.0f * (m_qFPC.x * m_qFPC.z + m_qFPC.w * m_qFPC.y);
+	float y = 2.0f * (m_qFPC.y * m_qFPC.z - m_qFPC.w * m_qFPC.x);
+	float z = 1.0f - 2.0f * (m_qFPC.x * m_qFPC.x + m_qFPC.y * m_qFPC.y);
+
+	//calculates the forward vector
+	vector3 forward = vector3(x, y, z);
+
+	//calculate the new right and up
+	vector3 right = glm::normalize(glm::cross(up, forward));
+
+	//key presses
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
+		position += forward * fSpeed;
+
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
+		position -= forward * fSpeed;
+
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
+		position += right * fSpeed;
+
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
+		position -= right * fSpeed;
+
+	// sets the new camera values
+	m_pCamera->SetPositionTargetAndUp(position, position + forward, up);
 }
 //Joystick
 void Application::ProcessJoystick(void)
