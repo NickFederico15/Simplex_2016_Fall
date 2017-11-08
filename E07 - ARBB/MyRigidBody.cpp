@@ -84,10 +84,46 @@ void MyRigidBody::SetModelMatrix(matrix4 a_m4ModelMatrix)
 
 	m_m4ToWorld = a_m4ModelMatrix;
 	
-	//your code goes here---------------------
-	m_v3MinG = m_v3MinL;
-	m_v3MaxG = m_v3MaxL;
-	//----------------------------------------
+	vector3 corners[8];
+	corners[0] = vector3(m_v3MinL.x, m_v3MinL.y, m_v3MinL.z);
+	corners[1] = vector3(m_v3MaxL.x, m_v3MinL.y, m_v3MinL.z);
+	corners[2] = vector3(m_v3MaxL.x, m_v3MaxL.y, m_v3MinL.z);
+	corners[3] = vector3(m_v3MaxL.x, m_v3MaxL.y, m_v3MaxL.z);
+
+	corners[4] = vector3(m_v3MinL.x, m_v3MaxL.y, m_v3MaxL.z);
+	corners[5] = vector3(m_v3MaxL.x, m_v3MinL.y, m_v3MaxL.z);
+	corners[6] = vector3(m_v3MinL.x, m_v3MaxL.y, m_v3MinL.z);
+	corners[7] = vector3(m_v3MinL.x, m_v3MinL.y, m_v3MaxL.z);
+
+
+	for (uint i = 0; i < 8; ++i) {
+		corners[i] = vector3(m_m4ToWorld * vector4(corners[i], 1.f));
+
+		if (i == 0) {
+			m_v3MaxG = m_v3MinG = corners[0];
+		}
+
+		if (corners[i].x < m_v3MinG.x) {
+			m_v3MinG.x = corners[i].x;
+		}
+		else if (corners[i].x > m_v3MaxG.x) {
+			m_v3MaxG.x = corners[i].x;
+		}
+
+		if (corners[i].y < m_v3MinG.y) {
+			m_v3MinG.y = corners[i].y;
+		}
+		else if (corners[i].y > m_v3MaxG.y) {
+			m_v3MaxG.y = corners[i].y;
+		}
+
+		if (corners[i].z < m_v3MinG.z) {
+			m_v3MinG.z = corners[i].z;
+		}
+		else if (corners[i].z > m_v3MaxG.z) {
+			m_v3MaxG.z = corners[i].z;
+		}
+	}
 
 	//we calculate the distance between min and max vectors
 	m_v3ARBBSize = m_v3MaxG - m_v3MinG;
