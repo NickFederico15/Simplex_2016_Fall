@@ -1,5 +1,6 @@
 #include "MyRigidBody.h"
 using namespace Simplex;
+using namespace std;
 //Allocation
 void MyRigidBody::Init(void)
 {
@@ -276,17 +277,194 @@ void MyRigidBody::AddToRenderList(void)
 
 uint MyRigidBody::SAT(MyRigidBody* const a_pOther)
 {
-	/*
-	Your code goes here instead of this comment;
+	// reference to each axis of object
+	vector<vector3> firstAxes;
+	vector<vector3> secondAxes;
 
-	For this method, if there is an axis that separates the two objects
-	then the return will be different than 0; 1 for any separating axis
-	is ok if you are not going for the extra credit, if you could not
-	find a separating axis you need to return 0, there is an enum in
-	Simplex that might help you [eSATResults] feel free to use it.
-	(eSATResults::SAT_NONE has a value of 0)
-	*/
+	// references local axes
+	vector4 local_xAxis(1, 0, 0, 0);
+	vector4 local_yAxis(0, 1, 0, 0);
+	vector4 local_zAxis(0, 0, 1, 0);
 
-	//there is no axis test that separates this two objects
-	return eSATResults::SAT_NONE;
+	// gets A coordinates
+	vector3 A_xAxis(m_m4ToWorld * local_xAxis);
+	vector3 A_yAxis(m_m4ToWorld * local_yAxis);
+	vector3 A_zAxis(m_m4ToWorld * local_zAxis);
+
+	// pushs coordinates to vector
+	firstAxes.push_back(A_xAxis);
+	firstAxes.push_back(A_yAxis);
+	firstAxes.push_back(A_zAxis);
+
+	// gets B coordinates
+	vector3 B_xAxis(a_pOther->GetModelMatrix() * local_xAxis);
+	vector3 B_yAxis(a_pOther->GetModelMatrix() * local_yAxis);
+	vector3 B_zAxis(a_pOther->GetModelMatrix() * local_zAxis);
+
+	// pushs coordinates to vector
+	secondAxes.push_back(B_xAxis);
+	secondAxes.push_back(B_yAxis);
+	secondAxes.push_back(B_zAxis);
+
+
+	// rotation matrix and the absolute value of it
+	matrix3 rotation;
+	matrix3 absRotation;
+	float tempA;
+	float tempB;
+
+	// gets rotation mat3
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 3; j++) {
+			rotation[i][j] = glm::dot(firstAxes[i], secondAxes[j]);
+		}
+	}
+
+	// gets translation vector into local space of A
+	vector3 translation(a_pOther->GetCenterGlobal() - GetCenterGlobal());
+	translation = vector3(glm::dot(translation, firstAxes[0]), glm::dot(translation, firstAxes[1]), glm::dot(translation, firstAxes[2]));
+
+	// stores the absolute value of the rotation matrix in the absRotation matrix
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 3; j++) {
+			absRotation[i][j] = glm::abs(rotation[i][j]) + FLT_EPSILON;
+		}
+	}
+
+	// calculates projection
+	tempA = m_v3HalfWidth.x;
+	tempB = (a_pOther->GetHalfWidth().x * absRotation[0][0]) + (a_pOther->GetHalfWidth().y * absRotation[0][1]) + (a_pOther->GetHalfWidth().z * absRotation[0][2]);
+
+	// tests the x Axis of A
+	if (glm::abs(translation.x) > tempA + tempB) {
+		return 1;
+	}
+
+	// calculates projection
+	tempA = m_v3HalfWidth.y;
+	tempB = (a_pOther->GetHalfWidth().x * absRotation[1][0]) + (a_pOther->GetHalfWidth().y * absRotation[1][1]) + (a_pOther->GetHalfWidth().z * absRotation[1][2]);
+
+	// tests the y Axis of A
+	if (glm::abs(translation.y) > tempA + tempB) {
+		return 1;
+	}
+
+	// calculates projection
+	tempA = m_v3HalfWidth.z;
+	tempB = (a_pOther->GetHalfWidth().x * absRotation[2][0]) + (a_pOther->GetHalfWidth().y * absRotation[2][1]) + (a_pOther->GetHalfWidth().z * absRotation[2][2]);
+
+	// tests the z Axis of A
+	if (glm::abs(translation.z) > tempA + tempB) {
+		return 1;
+	}
+
+	// calculates projection
+	tempA = (GetHalfWidth().x * absRotation[0][0]) + (GetHalfWidth().y * absRotation[1][0]) + (GetHalfWidth().z * absRotation[2][0]);
+	tempB = a_pOther->GetHalfWidth().x;
+
+	// tests the x Axis of B
+	if (glm::abs(translation.x * rotation[0][0] + translation.y * rotation[1][0] + translation.z * rotation[2][0]) > tempA + tempB) {
+		return 1;
+	}
+
+	// calculates projection
+	tempA = (GetHalfWidth().x * absRotation[0][1]) + (GetHalfWidth().y * absRotation[1][1]) + (GetHalfWidth().z * absRotation[2][1]);
+	tempB = a_pOther->GetHalfWidth().y;
+
+	// tests the y Axis of B
+	if (glm::abs(translation.x * rotation[0][1] + translation.y * rotation[1][1] + translation.z * rotation[2][1]) > tempA + tempB) {
+		return 1;
+	}
+
+	// calculates projection
+	tempA = (GetHalfWidth().x * absRotation[0][2]) + (GetHalfWidth().y * absRotation[1][2]) + (GetHalfWidth().z * absRotation[2][2]);
+	tempB = a_pOther->GetHalfWidth().z;
+
+	// tests the z Axis of B
+	if (glm::abs(translation.x * rotation[0][2] + translation.y * rotation[1][2] + translation.z * rotation[2][2]) > tempA + tempB) {
+		return 1;
+	}
+
+	// calculates projection and test the axis of A0 cross B0
+	tempA = GetHalfWidth().y * absRotation[2][0] + GetHalfWidth().z * absRotation[1][0];
+	tempB = a_pOther->GetHalfWidth().y * absRotation[0][2] + a_pOther->GetHalfWidth().z * absRotation[0][1];
+
+	// tests the axis of A0 cross B0
+	if (glm::abs(translation.z * rotation[1][0] - translation.y * rotation[2][0]) > tempA + tempB) {
+		return 1;
+	}
+
+	// calculates projection
+	tempA = GetHalfWidth().y * absRotation[2][1] + GetHalfWidth().z * absRotation[1][1];
+	tempB = a_pOther->GetHalfWidth().x * absRotation[0][2] + a_pOther->GetHalfWidth().z * absRotation[0][0];
+
+	// tests the axis of A0 cross B1
+	if (glm::abs(translation.z * rotation[1][1] - translation.y * rotation[2][1]) > tempA + tempB) {
+		return 1;
+	}
+
+	// calculates projection
+	tempA = GetHalfWidth().y * absRotation[2][2] + GetHalfWidth().z * absRotation[1][2];
+	tempB = a_pOther->GetHalfWidth().x * absRotation[0][1] + a_pOther->GetHalfWidth().y * absRotation[0][0];
+
+	// tests the axis of A0 cross B2
+	if (glm::abs(translation.z * rotation[1][2] - translation.y * rotation[2][2]) > tempA + tempB) {
+		return 1;
+	}
+
+	// calculates projection
+	tempA = GetHalfWidth().x * absRotation[2][0] + GetHalfWidth().z * absRotation[0][0];
+	tempB = a_pOther->GetHalfWidth().y * absRotation[1][2] + a_pOther->GetHalfWidth().z * absRotation[1][1];
+
+	// tests the axis of A1 cross B0
+	if (glm::abs(translation.x * rotation[2][0] - translation.z * rotation[0][0]) > tempA + tempB) {
+		return 1;
+	}
+
+	// calculates projection
+	tempA = GetHalfWidth().x * absRotation[2][1] + GetHalfWidth().z * absRotation[0][1];
+	tempB = a_pOther->GetHalfWidth().x * absRotation[1][2] + a_pOther->GetHalfWidth().z * absRotation[1][0];
+
+	// tests the axis of A1 cross B1
+	if (glm::abs(translation.x * rotation[2][1] - translation.z * rotation[0][1]) > tempA + tempB) {
+		return 1;
+	}
+
+	// calculates projection
+	tempA = GetHalfWidth().x * absRotation[2][2] + GetHalfWidth().z * absRotation[0][2];
+	tempB = a_pOther->GetHalfWidth().x * absRotation[1][1] + a_pOther->GetHalfWidth().y * absRotation[1][0];
+
+	// tests the axis of A1 cross B2
+	if (glm::abs(translation.x * rotation[2][2] - translation.z * rotation[0][2]) > tempA + tempB) {
+		return 1;
+	}
+
+	// calculates projection
+	tempA = GetHalfWidth().x * absRotation[1][0] + GetHalfWidth().y * absRotation[0][0];
+	tempB = a_pOther->GetHalfWidth().y * absRotation[2][2] + a_pOther->GetHalfWidth().z * absRotation[2][1];
+	
+	// tests the axis of A2 cross B0
+	if (glm::abs(translation.y * rotation[0][0] - translation.x * rotation[1][0]) > tempA + tempB) {
+		return 1;
+	}
+
+	// calculates projection
+	tempA = GetHalfWidth().x * absRotation[1][1] + GetHalfWidth().y * absRotation[0][1];
+	tempB = a_pOther->GetHalfWidth().x * absRotation[2][2] + a_pOther->GetHalfWidth().z * absRotation[2][0];
+
+	// tests the axis of A2 cross B1
+	if (glm::abs(translation.y * rotation[0][1] - translation.x * rotation[1][1]) > tempA + tempB) {
+		return 1;
+	}
+
+	// calculates projection
+	tempA = GetHalfWidth().x * absRotation[1][2] + GetHalfWidth().y * absRotation[0][2];
+	tempB = a_pOther->GetHalfWidth().x * absRotation[2][1] + a_pOther->GetHalfWidth().y * absRotation[2][0];
+
+	// tests the axis of A2 cross B2
+	if (glm::abs(translation.y * rotation[0][2] - translation.x * rotation[1][2]) > tempA + tempB) {
+		return 1;
+	}
+
+	return 0;
 }
