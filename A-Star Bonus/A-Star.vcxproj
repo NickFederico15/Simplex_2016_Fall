@@ -11,7 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{B2CBA403-7E67-4616-AEFB-1255F3B86CBE}</ProjectGuid>
+    <ProjectGuid>{61AF4E17-F24D-4ED0-9D3B-7CF835F0260B}</ProjectGuid>
     <RootNamespace>24_Physics</RootNamespace>
     <ProjectName>A-Star</ProjectName>
     <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
