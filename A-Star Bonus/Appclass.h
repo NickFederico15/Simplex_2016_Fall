@@ -32,7 +32,7 @@ private:
 	GLint width, height;
 
 	// callbacks
-	static void printError(GLint error, const GLchar* errorStr);
-	static void userInput(GLFWwindow* window, GLint key, GLint scancode, GLint action, GLint mods);
+	static void printError(GLint error, const GLchar* errorString);
+	static void userInput(GLFWwindow* window, GLint key, GLint code, GLint press, GLint modify);
 };
 #endif

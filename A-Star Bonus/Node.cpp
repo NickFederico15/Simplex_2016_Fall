@@ -19,6 +19,12 @@ Node::Node(const Node& node)
 	this->f_B = node.f_B;
 }
 
+// destructor
+Node::~Node()
+{
+	adjacentNodes.clear();
+}
+
 // gets the node position
 glm::vec3 Node::getPosition()
 {
@@ -127,7 +133,7 @@ std::vector<Node*> Node::getPath(Node &beginning, Node &end)
 				current->adjacentNodes[i]->inQueue = true;
 
 				// sort the vector
-				std::sort(std::begin(incomplete), std::end(incomplete), NodeCompare());
+				std::sort(std::begin(incomplete), std::end(incomplete), Sort());
 			}
 
 			// get a new float for adjacent node
@@ -180,6 +186,12 @@ void Node::reset()
 	f_B = FLT_MAX;
 }
 
+// sorts pointers
+bool Sort::operator()(const Node* nodeA, const Node* nodeB) const
+{
+	return *nodeA < *nodeB;
+}
+
 // assignment operator
 void Node::operator=(const Node& node)
 {
@@ -218,16 +230,4 @@ bool operator<(const Node& nodeA, const Node& nodeB)
 bool operator>(const Node& nodeA, const Node& nodeB)
 {
 	return ((nodeA.f_B + nodeA.f_A) > (nodeB.f_B + nodeB.f_A));
-}
-
-// destructor
-Node::~Node()
-{
-	adjacentNodes.clear();
-}
-
-// sorts pointers
-bool NodeCompare::operator()(const Node* nodeA, const Node* nodeB) const
-{
-	return *nodeA < *nodeB;
 }

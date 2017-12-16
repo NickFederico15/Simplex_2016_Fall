@@ -15,6 +15,7 @@ class Node
 public:
 	Node(glm::vec3 pos = glm::vec3());
 	Node(const Node& node);
+	~Node();
 
 	// get and set
 	glm::vec3 getPosition();
@@ -36,8 +37,6 @@ public:
 	friend bool operator<(const Node &nodeA, const Node &nodeB);
 	friend bool operator>(const Node &nodeA, const Node &nodeB);
 
-	~Node();
-
 private:
 	glm::vec3 position;
 	glm::mat4 transMatrix;
@@ -50,7 +49,7 @@ private:
 };
 
 // compares node pointers
-struct NodeCompare
+struct Sort
 {
 	bool operator()(const Node* nodeA, const Node* nodeB) const;
 };

@@ -9,15 +9,13 @@ GLuint Appclass::currentNode = 0;
 bool Appclass::runPath = false;
 bool Appclass::getPath = false;
 
-GLfloat Appclass::cameraSpeed = 0.5f;
+GLfloat Appclass::cameraSpeed = 1.0f;
 
 // Initialize the window
 GLint Appclass::init()
 {
 	width = 700;
 	height = 500;
-
-	std::cout << "Initializing GLFW" << std::endl;
 
 	// checks if glfw fails
 	if (!glfwInit())
@@ -28,11 +26,6 @@ GLint Appclass::init()
 
 	// callback error
 	glfwSetErrorCallback(printError);
-
-	// GLFW window hints
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
 
 	window = glfwCreateWindow(width, height, "A* Bonus Assignment - Nick Federico", nullptr, nullptr);
 
@@ -50,20 +43,18 @@ GLint Appclass::init()
 	glfwSetKeyCallback(window, userInput);
 	glfwSetCursorPos(window, this->width / 2, this->height / 2);
 
-	std::cout << "Initializing GLEW" << std::endl;
-	glewExperimental = GL_TRUE;
-
 	//Check if glew initializes
 	if (glewInit() != GLEW_OK)
 	{
-		std::cout << " GLEW failed to initialize" << std::endl;
+		std::cout << "GLEW failed to initialize" << std::endl;
 		return -1;
 	}
 
 	glfwGetFramebufferSize(window, &this->width, &this->height);
 
-	glClearColor(0.3f, 0.8f, 0.7f, 1.0f);
+	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 	glViewport(0, 0, width, height);
+
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_BLEND);
@@ -149,7 +140,6 @@ GLint Appclass::run()
 	glm::mat4 cubeMatrix;
 
 	// pointers to nodes and paths
-	std::vector<Node*> adjacentNodes;
 	std::vector<Node*> path;
 
 	while (!glfwWindowShouldClose(window))
@@ -163,28 +153,9 @@ GLint Appclass::run()
 		glfwPollEvents();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		// render nodes as icospheres
-		for (GLuint i = 0; i < adjacenyList.size(); i++)
-		{
-			if (i == currentNode) {
-				meshManager->AddIcoSphereToRenderList(adjacenyList[i].getMat(), glm::vec3(0.0f, 1.0f, 0.0f));
-			}
-			else {
-				meshManager->AddIcoSphereToRenderList(adjacenyList[i].getMat(), glm::vec3(1.0f, 0.0f, 0.0f));
-			}
-
-			// get adjacent nodes and render lines between
-			adjacentNodes = adjacenyList[i].getAdjacentNodes();
-
-			for (GLuint j = 0; j < adjacentNodes.size(); j++)
-			{
-				meshManager->AddLineToRenderList(glm::mat4(1.0f), adjacenyList[i].getPosition(), adjacentNodes[j]->getPosition(), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-			}
-		}
-
 		// renders cube
 		cubeMatrix = glm::translate(cubeMatrix, cubePosition);
-		cubeMatrix = glm::scale(cubeMatrix, glm::vec3(2.0f, 2.0f, 2.0f));
+		
 		meshManager->AddCubeToRenderList(cubeMatrix, glm::vec3(1.0f, 1.0f, 1.0f));
 
 		// uses A* to move cube
@@ -254,7 +225,7 @@ void Appclass::printError(GLint error, const GLchar* errorMessage)
 	std::cout << "Error: " << error << errorMessage << std::endl;
 }
 
-void Appclass::userInput(GLFWwindow* window, GLint key, GLint scancode, GLint press, GLint mods)
+void Appclass::userInput(GLFWwindow* window, GLint key, GLint code, GLint press, GLint modify)
 {
 	// switches between nodes
 	switch (key)
